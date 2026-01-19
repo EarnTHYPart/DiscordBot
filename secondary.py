@@ -7,6 +7,8 @@ import json
 from collections import defaultdict, deque
 import requests
 from config import BotConfig
+from utils import load_json_file, save_json_file
+from __version__ import __version__
 
 # Validate configuration on startup
 BotConfig.validate()
@@ -18,25 +20,12 @@ GUILD_ID = discord.Object(id=BotConfig.GUILD_ID)
 
 # persistence helpers
 def load_strikes():
-    if not os.path.exists(BotConfig.STRIKE_FILE):
-        try:
-            with open(BotConfig.STRIKE_FILE, "w") as f:
-                json.dump({}, f)
-        except Exception:
-            pass
-        return {}
-    try:
-        with open(BotConfig.STRIKE_FILE, "r") as f:
-            return json.load(f)
-    except Exception:
-        return {}
+    """Load strike data from JSON file"""
+    return load_json_file(BotConfig.STRIKE_FILE, default={})
 
 def save_strikes(data):
-    try:
-        with open(BotConfig.STRIKE_FILE, "w") as f:
-            json.dump(data, f, indent=2)
-    except Exception:
-        pass
+    """Save strike data to JSON file"""
+    save_json_file(BotConfig.STRIKE_FILE, data)
 
 strikes = load_strikes()
 message_history = defaultdict(lambda: deque())  # user_id -> deque of timestamps
@@ -343,8 +332,11 @@ async def mention(ctx, *, target: str):
 
 # ---------------- Run Bot ---------------- #
 if __name__ == "__main__":
-    print("Starting Discord Bot with Advanced Moderation...")
+    print(f"Discord Bot v{__version__} - Advanced Moderation Edition")
+    print("=" * 60)
     print("Configuration Summary:")
     for key, value in BotConfig.get_summary().items():
         print(f"  {key}: {value}")
+    print("=" * 60)
+    print("Starting bot with moderation features...")
     client.run(BotConfig.BOT_TOKEN)

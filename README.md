@@ -184,11 +184,14 @@ DiscordBot/
 ├── main.py              # Basic bot implementation
 ├── secondary.py         # Advanced bot with full moderation
 ├── config.py            # Centralized configuration module
+├── utils.py             # Utility functions (JSON handling, formatting)
 ├── requirements.txt     # Python dependencies
 ├── strikes.json         # Persistent strike data (auto-generated)
 ├── .env                 # Environment configuration (create this)
 ├── .env.example         # Example environment configuration
 ├── .gitignore          # Git ignore file
+├── LICENSE             # MIT License
+├── CONTRIBUTING.md     # Contribution guidelines
 └── README.md           # This file
 ```
 
@@ -197,9 +200,12 @@ DiscordBot/
 - **main.py**: Simplified version with basic commands, reaction roles, and UI components
 - **secondary.py**: Full-featured version with auto-moderation, profanity filter, spam detection, and all commands
 - **config.py**: Centralized configuration management - loads and validates all settings from `.env`
+- **utils.py**: Reusable utility functions for JSON handling, text formatting, and more
 - **strikes.json**: JSON file storing user strike counts (automatically created)
 - **.env.example**: Template for environment variables - copy to `.env` and configure
 - **requirements.txt**: List of required Python packages
+- **LICENSE**: MIT License for the project
+- **CONTRIBUTING.md**: Guidelines for contributing to the project
 
 ## Dependencies
 
@@ -234,6 +240,8 @@ See [requirements.txt](requirements.txt) for complete list with versions.
 
 ## Contributing
 
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to contribute to this project.
+
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/NewFeature`)
 3. Commit your changes (`git commit -m 'Add NewFeature'`)
@@ -250,6 +258,8 @@ See [requirements.txt](requirements.txt) for complete list with versions.
 ## License
 
 This project is provided as-is for educational and personal use.
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Support
 

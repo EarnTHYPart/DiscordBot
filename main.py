@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 from config import BotConfig
+from __version__ import __version__
 
 # Validate configuration on startup
 BotConfig.validate()
@@ -186,8 +187,11 @@ async def myMenu(interaction: discord.Interaction):
 
 # ---------------- RUN BOT ---------------- #
 if __name__ == "__main__":
-    print("Starting Discord Bot...")
+    print(f"Discord Bot v{__version__}")
+    print("=" * 50)
     print("Configuration Summary:")
     for key, value in BotConfig.get_summary().items():
         print(f"  {key}: {value}")
+    print("=" * 50)
+    print("Starting bot...")
     client.run(BotConfig.BOT_TOKEN)
