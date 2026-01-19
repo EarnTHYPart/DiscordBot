@@ -5,45 +5,35 @@ import os
 import time
 import json
 from collections import defaultdict, deque
-from dotenv import load_dotenv
 import requests
+from config import BotConfig
 
-load_dotenv()
+# Validate configuration on startup
+BotConfig.validate()
 
 baseUrl = "https://api.api-ninjas.com/v1/profanityfilter"
 
-
-
-# (Re)load env/config
-GUILD_ID_VAL = int(os.getenv("DISCORD_GUILD_ID", "1403714242632224821"))
-MOD_LOG_CHANNEL_ID = os.getenv("MOD_LOG_CHANNEL_ID")  # optional (string)
-GUILD_ID = discord.Object(id=GUILD_ID_VAL)
-
-# Profanity and spam settings
-BANNED_WORDS = {w.lower() for w in os.getenv("BANNED_WORDS", "badword1,badword2").split(",") if w}
-STRIKE_FILE = os.path.join(os.path.dirname(__file__), "strikes.json")
-SPAM_TIME_WINDOW = int(os.getenv("SPAM_TIME_WINDOW", "7"))  # seconds
-SPAM_MESSAGE_LIMIT = int(os.getenv("SPAM_MESSAGE_LIMIT", "5"))  # messages in window
-STRIKES_TO_BAN = int(os.getenv("STRIKES_TO_BAN", "3"))
+# Setup guild ID from config
+GUILD_ID = discord.Object(id=BotConfig.GUILD_ID)
 
 # persistence helpers
 def load_strikes():
-    if not os.path.exists(STRIKE_FILE):
+    if not os.path.exists(BotConfig.STRIKE_FILE):
         try:
-            with open(STRIKE_FILE, "w") as f:
+            with open(BotConfig.STRIKE_FILE, "w") as f:
                 json.dump({}, f)
         except Exception:
             pass
         return {}
     try:
-        with open(STRIKE_FILE, "r") as f:
+        with open(BotConfig.STRIKE_FILE, "r") as f:
             return json.load(f)
     except Exception:
         return {}
 
 def save_strikes(data):
     try:
-        with open(STRIKE_FILE, "w") as f:
+        with open(BotConfig.STRIKE_FILE, "w") as f:
             json.dump(data, f, indent=2)
     except Exception:
         pass
@@ -57,7 +47,7 @@ class Client(commands.Bot):
         intents = discord.Intents.default()
         intents.message_content = True
         intents.members = True
-        super().__init__(command_prefix="!", intents=intents)
+        super().__init__(command_prefix=BotConfig.COMMAND_PREFIX, intents=intents)
         self.synced = False  # Prevent multiple syncs
 
     async def setup_hook(self):
@@ -88,7 +78,7 @@ class Client(commands.Bot):
         # Profanity check
         content = (message.content or "")
         content_lower = content.lower()
-        if any(bw in content_lower for bw in BANNED_WORDS if bw):
+        if any(bw in content_lower for bw in BotConfig.BANNED_WORDS if bw):
             try:
                 await message.delete()
             except discord.Forbidden:
@@ -97,11 +87,11 @@ class Client(commands.Bot):
             strikes[user_id] = strikes.get(user_id, 0) + 1
             save_strikes(strikes)
             try:
-                await message.channel.send(f"{message.author.mention}, that language is not allowed. Strike {strikes[user_id]}/{STRIKES_TO_BAN}.", delete_after=8)
+                await message.channel.send(f"{message.author.mention}, that language is not allowed. Strike {strikes[user_id]}/{BotConfig.STRIKES_TO_BAN}.", delete_after=8)
             except Exception:
                 pass
             await self.log_mod_action(f"Profanity: {message.author} ({message.author.id}) used banned word in {getattr(message.channel, 'mention', str(message.channel))}. Strike {strikes[user_id]}.")
-            if strikes[user_id] >= STRIKES_TO_BAN:
+            if strikes[user_id] >= BotConfig.STRIKES_TO_BAN:
                 if message.guild:
                     try:
                         await message.guild.ban(message.author, reason="Exceeded profanity strikes")
@@ -115,9 +105,9 @@ class Client(commands.Bot):
         history = message_history[message.author.id]
         history.append(now)
         # drop old timestamps
-        while history and now - history[0] > SPAM_TIME_WINDOW:
+        while history and now - history[0] > BotConfig.SPAM_TIME_WINDOW:
             history.popleft()
-        if len(history) >= SPAM_MESSAGE_LIMIT:
+        if len(history) >= BotConfig.SPAM_MESSAGE_LIMIT:
             # consider spam - attempt to ban (only in guilds)
             try:
                 await message.delete()
@@ -130,7 +120,7 @@ class Client(commands.Bot):
                         await message.channel.send(f"{message.author.mention} has been banned for spamming.", delete_after=8)
                     except Exception:
                         pass
-                    await self.log_mod_action(f"Banned {message.author} for spamming ({len(history)} msgs in {SPAM_TIME_WINDOW}s).")
+                    await self.log_mod_action(f"Banned {message.author} for spamming ({len(history)} msgs in {BotConfig.SPAM_TIME_WINDOW}s).")
                 except Exception as e:
                     await self.log_mod_action(f"Failed to ban {message.author} for spam: {e}")
             else:
@@ -185,9 +175,9 @@ class Client(commands.Bot):
                 pass
 
     async def log_mod_action(self, message: str):
-        if MOD_LOG_CHANNEL_ID:
+        if BotConfig.MOD_LOG_CHANNEL_ID:
             try:
-                ch = self.get_channel(int(MOD_LOG_CHANNEL_ID))
+                ch = self.get_channel(int(BotConfig.MOD_LOG_CHANNEL_ID))
                 if ch:
                     await ch.send(f"[MOD LOG] {message}")
             except Exception:
@@ -351,9 +341,10 @@ async def mention(ctx, *, target: str):
     except Exception:
         pass
 
-# ---------------- Secure Token Loading & Run ---------------- #
-TOKEN = os.getenv("DISCORD_BOT_TOKEN")
-if not TOKEN:
-    raise ValueError("Bot token not found. Please set DISCORD_BOT_TOKEN in your .env file.")
-
-client.run(TOKEN)
+# ---------------- Run Bot ---------------- #
+if __name__ == "__main__":
+    print("Starting Discord Bot with Advanced Moderation...")
+    print("Configuration Summary:")
+    for key, value in BotConfig.get_summary().items():
+        print(f"  {key}: {value}")
+    client.run(BotConfig.BOT_TOKEN)
