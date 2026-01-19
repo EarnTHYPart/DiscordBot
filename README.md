@@ -63,7 +63,12 @@ A feature-rich Discord bot built with discord.py that provides moderation tools,
 
 5. **Configure environment variables**
    
-   Create a `.env` file in the project root:
+   Copy the example file and fill in your values:
+   ```bash
+   cp .env.example .env
+   ```
+   
+   Or create a `.env` file manually:
    ```env
    DISCORD_BOT_TOKEN=your_bot_token_here
    DISCORD_GUILD_ID=your_server_id_here
@@ -72,9 +77,12 @@ A feature-rich Discord bot built with discord.py that provides moderation tools,
    SPAM_TIME_WINDOW=7
    SPAM_MESSAGE_LIMIT=5
    STRIKES_TO_BAN=3
+   COMMAND_PREFIX=!
    ```
 
 ## Configuration
+
+The bot uses a centralized configuration system through `config.py` which loads all settings from your `.env` file.
 
 ### Environment Variables
 
@@ -83,10 +91,13 @@ A feature-rich Discord bot built with discord.py that provides moderation tools,
 | `DISCORD_BOT_TOKEN` | Your bot's authentication token | *Required* |
 | `DISCORD_GUILD_ID` | Your Discord server ID | *Required* |
 | `MOD_LOG_CHANNEL_ID` | Channel ID for moderation logs | *Optional* |
-| `BANNED_WORDS` | Comma-separated list of profanity | `badword1,badword2` |
+| `BANNED_WORDS` | Comma-separated list of profanity | `` |
 | `SPAM_TIME_WINDOW` | Time window for spam detection (seconds) | `7` |
 | `SPAM_MESSAGE_LIMIT` | Max messages allowed in time window | `5` |
 | `STRIKES_TO_BAN` | Number of strikes before auto-ban | `3` |
+| `COMMAND_PREFIX` | Bot command prefix | `!` |
+
+**Note**: An `.env.example` file is provided as a template. Copy it to `.env` and fill in your actual values.
 
 ### Bot Permissions
 
@@ -172,9 +183,11 @@ python secondary.py
 DiscordBot/
 ├── main.py              # Basic bot implementation
 ├── secondary.py         # Advanced bot with full moderation
+├── config.py            # Centralized configuration module
 ├── requirements.txt     # Python dependencies
 ├── strikes.json         # Persistent strike data (auto-generated)
 ├── .env                 # Environment configuration (create this)
+├── .env.example         # Example environment configuration
 ├── .gitignore          # Git ignore file
 └── README.md           # This file
 ```
@@ -183,7 +196,9 @@ DiscordBot/
 
 - **main.py**: Simplified version with basic commands, reaction roles, and UI components
 - **secondary.py**: Full-featured version with auto-moderation, profanity filter, spam detection, and all commands
+- **config.py**: Centralized configuration management - loads and validates all settings from `.env`
 - **strikes.json**: JSON file storing user strike counts (automatically created)
+- **.env.example**: Template for environment variables - copy to `.env` and configure
 - **requirements.txt**: List of required Python packages
 
 ## Dependencies

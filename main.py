@@ -1,14 +1,13 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
-import os
-from dotenv import load_dotenv
+from config import BotConfig
 
-load_dotenv()
+# Validate configuration on startup
+BotConfig.validate()
 
-# Load configuration from environment
-GUILD_ID_VAL = int(os.getenv("DISCORD_GUILD_ID", "0"))
-GUILD_ID = discord.Object(id=GUILD_ID_VAL)
+# Setup guild ID
+GUILD_ID = discord.Object(id=BotConfig.GUILD_ID)
 
 # ---------------- BOT CLIENT ---------------- #
 class Client(commands.Bot):
@@ -186,8 +185,9 @@ async def myMenu(interaction: discord.Interaction):
 
 
 # ---------------- RUN BOT ---------------- #
-TOKEN = os.getenv("DISCORD_BOT_TOKEN")
-if not TOKEN:
-    raise ValueError("Bot token not found. Please set DISCORD_BOT_TOKEN in your .env file.")
-
-client.run(TOKEN)
+if __name__ == "__main__":
+    print("Starting Discord Bot...")
+    print("Configuration Summary:")
+    for key, value in BotConfig.get_summary().items():
+        print(f"  {key}: {value}")
+    client.run(BotConfig.BOT_TOKEN)
